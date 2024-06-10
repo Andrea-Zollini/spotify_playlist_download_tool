@@ -1,7 +1,7 @@
 import { spotifyTokens } from "./index.js";
+import fs from 'fs';
 import spotifyWebApi from 'spotify-web-api-node';
-// const token = spotifyTokens.access_token;
-const token = 'BQBJsk7AcrRUzipBJxOAHMGNVjto2x1iqwIYNHIO3eA3uzyVTM1IAvWocaCMVbluwVWGHqjyId8wU-TU59S1dOvq9sRTJXCk7Y4hamtuak06QbL5m03spvrLQNSYLvvxwH6TFA5RBApsXASbEPKOKJ4KCVLJFyoH5F3h6l8b_Kwivakp4kCWPyHhk1JwXapG0zipQiHUpvwLtM4rSf6f8IHWOvIdPl1HqB1UhJnt_L_89vOQgHhJVgwFAkGPETlRX4zs4ik81hW0eRfUyZIk8MHJ5Agkmih6ubHq3JB1idMeynHjOgWvPAYstFbQSFQMUA';
+const token = 'BQCo2jGWSkoo2JJCUayPlymm-FM4W4_ZDw_gfmM3IzjXW3gmSMN6Xcm8cBxq57mvTEbEz0lGcNKz_c2XsK9Wlj9xIqSARSOfwnEiQyWXvQHPu6PIOmhIUexNam_-Uewwn-2AdifHxzSPJOCs7upmBAP0vt9mFl-5nt0jyVH27wpkDRrFdQbtVP8kxu8kxrhzx4fDjcMTgb0xwAPLNYCUUxh90u-CggLuhw3MKp92Hg64kBsFitnw_mar--mJWgBqtbnDyCx5IBmB_Bwrm5kVIBGPkU53mH3MDG_SfvAdmi8rYVN5MuXNpo8kvgLca7aZyg';
 
 const spotifyApi = new spotifyWebApi();
 spotifyApi.setAccessToken(token);
@@ -20,26 +20,44 @@ const getUserPlaylists = async (userId) => {
 
     let playlists = [];
 
+
     for(let playlist of data.body.items) {
-    //     console.log('--------------------');
 
-    //     console.log(`${playlist.name} - ${playlist.id}`);
-    //     const tracks = await spotifyApi.getPlaylistTracks(playlist.id);
-    //     // console.log(tracks.body.items);
-    //     for(let track of tracks.body.items) {
-    //         console.log(`${track.track.name}`);
-    //     }
+        const tracks = await getPlaylistTracks(playlist.id, playlist.name);
 
-    //     console.log('--------------------');
+        const tracksJson = { tracks };
+        let data = JSON.stringify(tracksJson);
+
 
         playlists.push({
             name: playlist.name,
             id: playlist.id,
+            songs: data,
         });
     }
 
-    console.log(playlists);
-    return playlists;
+    fs.writeFileSync('playlists.json', JSON.stringify(playlists));
+}
+
+const getPlaylistTracks = async (playlistId, playlistName) => {
+    const data = await spotifyApi.getPlaylistTracks(playlistId, { limit: 100, offset: 1, fields: 'items' });
+    let tracks = [];
+
+    for(let track of data.body.items) {
+        tracks.push({
+            name: getPrettyName(track.track.name),
+            artist: track.track.artists[0].name,
+        }); 
+    }
+    return tracks;
+}
+
+
+const getPrettyName = (name) => {
+    if(name.includes('-')) {
+        return name.split('-')[0];
+    }
+    return name;
 }
 
 getInfo();
