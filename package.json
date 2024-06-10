@@ -1,0 +1,11 @@
+{
+  "name": "spotify_playlist_download_tool",
+  "version": "1.0.0",
+  "description": "app to download spotify playlists",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "a21z",
+  "license": "MIT"
+}
