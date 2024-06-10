@@ -3,6 +3,12 @@ import spotifyWebApi from 'spotify-web-api-node';
 import express from 'express';
 dotenv.config();
 
+export const spotifyTokens = {
+  access_token: null,
+  refresh_token: null,
+  expires_in: 0,
+}
+
 
 const scopes = [
     'ugc-image-upload',
@@ -35,7 +41,7 @@ const scopes = [
 
   const app = express();
 
-  app.get('/login', (req, res) => {
+  app.get('/', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
   });
 
@@ -53,16 +59,16 @@ const scopes = [
     spotifyApi
       .authorizationCodeGrant(code)
       .then(data => {
-        const access_token = data.body['access_token'];
-        const refresh_token = data.body['refresh_token'];
-        const expires_in = data.body['expires_in'];
+        spotifyTokens.access_token = data.body['access_token'];
+        spotifyTokens.refresh_token = data.body['refresh_token'];
+        spotifyTokens.expires_in = data.body['expires_in'];
 
-        spotifyApi.setAccessToken(access_token);
-        spotifyApi.setRefreshToken(refresh_token);
+        spotifyApi.setAccessToken(spotifyTokens.access_token);
+        spotifyApi.setRefreshToken(spotifyTokens.refresh_token);
 
-        console.log(`access_token: ${access_token}`);
-        console.log(`expires_in: ${expires_in}`);
-        console.log(`refresh_token: ${refresh_token}`);
+        console.log(`access_token: ${spotifyTokens.access_token}`);
+        console.log(`expires_in: ${spotifyTokens.expires_in}`);
+        console.log(`refresh_token: ${spotifyTokens.refresh_token}`);
 
         res.send('You have successfully logged in!');
 
@@ -73,7 +79,7 @@ const scopes = [
           console.log('The access token has been refreshed');
           console.log(`New access token: ${access_token}`);
           spotifyApi.setAccessToken(access_token);
-        }, expires_in / 2 * 1000);
+        }, spotifyTokens.expires_in / 2 * 1000);
       });
   });
 
